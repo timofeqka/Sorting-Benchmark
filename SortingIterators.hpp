@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
+#include <random>
 
 //*****************************************************************
 // BUBBLE
@@ -204,56 +205,91 @@ void mergeSort(
 //*****************************************************************
 // QUICK
 //*****************************************************************
+// template 
+// 	<
+// 		typename Iterator,
+// 		typename Compare
+// 	>
+// Iterator medianOfThree(
+// 	Iterator first,
+// 	Iterator mid,
+// 	Iterator last,
+// 	Compare comp
+// ) {
+// 	if (
+// 		(!comp(*mid, *first) && !comp(*last, *mid))
+// 		||
+// 		(!comp(*mid, *last) && !comp(*first, *mid))
+// 	) return mid;
+
+// 	if (
+// 		(!comp(*first, *mid) && !comp(*last, *first))
+// 		||
+// 		(!comp(*first, *last) && !comp(*mid, *first))
+// 	) return first;
+
+// 	return last;
+// }
+
+class DefaultRandom {
+private:
+	std::mt19937 generator;
+
+public:
+  	DefaultRandom() : generator(std::random_device{}()) {}
+
+	template <typename Int>
+	Int operator()(Int min, Int max) {
+		std::uniform_int_distribution<Int> dist(min, max);
+		return dist(generator);
+	}
+};
+
 template 
 	<
-		typename Iterator,
-		typename Compare
+	typename Iterator,
+	typename Random
 	>
-Iterator medianOfThree(
-	Iterator first,
-	Iterator mid,
-	Iterator last,
-	Compare comp
+Iterator randomPivot(
+	Iterator begin,
+	std::iter_difference_t<Iterator> size,
+	Random& rnd
 ) {
-	if (
-		(!comp(*mid, *first) && !comp(*last, *mid))
-		||
-		(!comp(*mid, *last) && !comp(*first, *mid))
-	) return mid;
+	std::iter_difference_t<Iterator> dist = rnd(0, size - 1);
 
-	if (
-		(!comp(*first, *mid) && !comp(*last, *first))
-		||
-		(!comp(*first, *last) && !comp(*mid, *first))
-	) return first;
-
-	return last;
+	Iterator random = begin;
+	std::advance(random, dist);
+	return random;
 }
 
 template 
 	<
 		typename Iterator, 
-		typename Compare
+		typename Compare,
+		typename Random
 	>
 void quickSortImpl(
 	Iterator begin, 
 	Iterator end,
-	Compare comp = {}
+	Compare comp,
+	Random& rnd
 ) {
 	using DiffType  = std::iter_difference_t<Iterator>;
 	const DiffType size = std::distance(begin, end);
 
 	if (size <= 1) return;
 
-	Iterator mid = begin;
-	std::advance(mid, size/2);
+	// Iterator mid = begin;
+	// std::advance(mid, size/2);
 
     Iterator left = begin;
     Iterator right = end - 1;
 	
-	Iterator median = medianOfThree(begin, mid, end - 1, comp);
+	//Iterator median = medianOfThree(begin, mid, end - 1, comp);
+	//const auto pivot = *median;
 
-	const auto pivot = *median;
+	Iterator random = randomPivot(begin, size, rnd);
+	const auto pivot = *random;
 
 	while (left <= right) {
 		while (comp(*left, pivot)) {
@@ -270,8 +306,8 @@ void quickSortImpl(
 		}
 	}
 
-	quickSortImpl(begin, right + 1, comp);
-    quickSortImpl(left, end, comp);
+	quickSortImpl(begin, right + 1, comp, rnd);
+    quickSortImpl(left, end, comp, rnd);
 }
 
 template 
@@ -284,5 +320,6 @@ void quickSort(
 	Iterator end, 
 	Compare comp = {}
 ) {
-	quickSortImpl(begin, end, comp);
+	DefaultRandom rnd;
+	quickSortImpl(begin, end, comp, rnd);
 }
