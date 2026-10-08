@@ -280,7 +280,7 @@ void quickSortImpl(
   Iterator mid = begin;
   std::advance(mid, size/2);
 
-  Iterator pivot = mid;
+  const auto pivot = *mid;
 
     Iterator left = begin;
     Iterator right = end - 1;
