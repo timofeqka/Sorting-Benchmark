@@ -263,63 +263,57 @@ Iterator randomPivot(
 }
 
 template 
-	<
-		typename Iterator, 
-		typename Compare,
-		typename Random
-	>
+  <
+    typename Iterator, 
+    typename Compare
+  >
 void quickSortImpl(
-	Iterator begin, 
-	Iterator end,
-	Compare comp,
-	Random& rnd
+  Iterator begin, 
+  Iterator end,
+  Compare comp = {}
 ) {
-	using DiffType  = std::iter_difference_t<Iterator>;
-	const DiffType size = std::distance(begin, end);
+  using DiffType  = std::iter_difference_t<Iterator>;
+  const DiffType size = std::distance(begin, end);
 
-	if (size <= 1) return;
+  if (size <= 1) return;
 
-	// Iterator mid = begin;
-	// std::advance(mid, size/2);
+  Iterator mid = begin;
+  std::advance(mid, size/2);
+
+  Iterator pivot = mid;
 
     Iterator left = begin;
     Iterator right = end - 1;
-	
-	//Iterator median = medianOfThree(begin, mid, end - 1, comp);
-	//const auto pivot = *median;
+  
+  
+  while (left <= right) {
+    while (comp(*left, *pivot)) {
+      ++left;
+    }
+    while (comp(*pivot, *right)) {
+      --right;
+    }
 
-	Iterator random = randomPivot(begin, size, rnd);
-	const auto pivot = *random;
+    if (left <= right) {
+      std::iter_swap(left, right);
+      ++left;
+      --right;
+    }
+  }
 
-	while (left <= right) {
-		while (comp(*left, pivot)) {
-			++left;
-		}
-		while (comp(pivot, *right)) {
-			--right;
-		}
-
-		if (left <= right) {
-			std::iter_swap(left, right);
-			++left;
-			--right;
-		}
-	}
-
-	quickSortImpl(begin, right + 1, comp, rnd);
-    quickSortImpl(left, end, comp, rnd);
+  quickSortImpl(begin, right + 1, comp);
+    quickSortImpl(left, end, comp);
 }
 
 template 
-	<
-		typename Iterator, 
-		typename Compare = std::less<>
-	>
+  <
+    typename Iterator, 
+    typename Compare = std::less<>
+  >
 void quickSort(
-	Iterator begin, 
-	Iterator end, 
-	Compare comp = {}
+  Iterator begin, 
+  Iterator end, 
+  Compare comp = {}
 ) {
-	DefaultRandom rnd;
-	quickSortImpl(begin, end, comp, rnd);
+  quickSortImpl(begin, end, comp);
 }
